@@ -1,0 +1,77 @@
+import time
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+
+import streamlit as st
+
+def registrar_prova(email, senha_email, prova):
+
+    # abrindo chrome
+    pagina = webdriver.Chrome()
+    pagina.get("https://painel.fotop.io/login")
+
+    # login
+    login = pagina.find_element(By.ID,"email")
+    senha = pagina.find_element(By.ID,"senha")
+    btnLogar = pagina.find_element(By.XPATH,"//*[@id='formLogar']/div[4]/button")
+
+    login.send_keys(email)
+    senha.send_keys(senha_email)
+    btnLogar.click()
+
+    time.sleep(1)
+
+    # direcionar pagina de busca
+    pagina.get("https://painel.fotop.io/eventos/proximos")
+    time.sleep(1)
+
+    txtBuscaEvento = pagina.find_element(By.ID,"txtBuscaEventos")
+    txtBuscaEvento.send_keys(prova) 
+
+    btnBuscar = pagina.find_element(By.ID,"btnBuscar")
+    btnBuscar.click()
+
+    time.sleep(1)
+
+    # clicar em participar
+    participar = pagina.find_element(By.CSS_SELECTOR,"button.btn-verde")
+
+    # tentativas para registro na prova
+    tentativa = 0
+    while participar.text == "":
+        pagina.refresh()
+        print(f"Atualizando: tentativa {tentativa + 1}")
+        time.sleep(0.5)
+        participar = pagina.find_element(By.CSS_SELECTOR, "button.btn-verde")
+
+    participar.click()
+
+    time.sleep(0.5)
+
+    #ACEITE DE TERMOS
+    btnTermos = pagina.find_element(By.XPATH, "//*[@id='aceiteTermos']/p[3]/label")
+    btnTermos.click()
+
+    time.sleep(0.5)
+
+    #CRIAR O CLICAR NO PARTICIPAR DE NOVO
+    btnConcordo = pagina.find_element(By.ID, "divAceitarTermos")
+    btnConcordo.click()
+
+
+def main():
+    st.title('Robô - Inscrição provas FOTOP')
+    
+    email = st.text_input(label="Insira seu email:")
+    senha = st.text_input(label="Insira sua senha:", type='password')
+    prova = st.text_input(label="Insira o nome da prova:")
+
+    if st.button('Buscar inscrição:'):
+        with st.spinner('Buscando...'):
+            registrar_prova(email, senha, prova)
+        st.success('Inscrito!')
+
+if __name__ == "__main__":
+    main()
